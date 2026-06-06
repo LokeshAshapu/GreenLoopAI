@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Back link -->
+    <div class="mb-6">
+        <a href="{% url 'dashboard' %}" class="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-400 transition-colors font-semibold">
+            <i data-feather="chevron-left" class="w-4 h-4"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Main Mission Card -->
+    <div class="glass-card p-8 rounded-2xl border border-slate-900 shadow-xl space-y-6 relative overflow-hidden">
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl"></div>
+
+        <!-- Title / Status Header -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-900 pb-6">
+            <div>
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-[10px] uppercase mb-2">
+                    +{{ mission.eco_points_reward }} Eco Points
+                </span>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{{ mission.title }}</h1>
+            </div>
+            
+            <div class="flex-shrink-0 flex items-center gap-2">
+                <span class="text-xs text-slate-500 font-medium">Mission Status:</span>
+                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider
+                    {% if mission.status == 'completed' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+                    {% elif mission.status == 'ongoing' %}bg-yellow-500/10 text-yellow-400 border border-yellow-500/20
+                    {% elif mission.status == 'cancelled' %}bg-red-500/10 text-red-400 border border-red-500/20
+                    {% else %}bg-slate-900 text-slate-400 border border-slate-800{% endif %}">
+                    {{ mission.get_status_display }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="space-y-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Mission Description & Goals</h3>
+            <p class="text-sm text-slate-300 leading-relaxed font-light">
+                {{ mission.description }}
+            </p>
+        </div>
+
+        <!-- Meta Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 border-t border-b border-slate-900 py-6">
+            <div>
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Organizer</span>
+                <span class="text-sm font-semibold text-slate-200">{{ mission.organizer.username }}</span>
+                <span class="block text-[10px] text-slate-500 capitalize">Role: {{ mission.organizer.get_role_display }}</span>
+            </div>
+            <div>
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Scheduled Time</span>
+                <span class="text-sm font-semibold text-slate-200">{{ mission.scheduled_time|date:"F d, Y H:i" }}</span>
+                <span class="block text-[10px] text-slate-500">Local coordinate timezone</span>
+            </div>
+            <div>
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Volunteers Joined</span>
+                <span class="text-sm font-semibold text-slate-200">{{ mission.volunteers.count }} Volunteers</span>
+                <span class="block text-[10px] text-slate-500">Ready to clean up</span>
+            </div>
+        </div>
+
+        <!-- Associated Hazard report details if any -->
+        {% if mission.report %}
+            <div class="p-4 bg-slate-950/60 border border-slate-900 rounded-xl flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <img src="{{ mission.report.image.url }}" class="w-12 h-12 rounded object-cover border border-slate-800" alt="hazard">
+                    <div>
+                        <h4 class="text-xs font-bold text-white line-clamp-1">Target Hazard: {{ mission.report.title }}</h4>
+                        <span class="text-[10px] text-slate-400 capitalize">Location: {{ mission.report.latitude }}, {{ mission.report.longitude }}</span>
+                    </div>
+                </div>
+                <a href="{% url 'scanner_detail' mission.report.id %}" class="px-3 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white rounded text-[11px] font-semibold transition-colors">
+                    View Hazard Scan
+                </a>
+            </div>
+        {% endif %}
+
+        <!-- Actions panel -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-between items-center pt-2">
+            <div>
+                {% if mission.status == 'planned' or mission.status == 'ongoing' %}
+                    {% include 'partials/mission_join_btn.html' %}
+                {% endif %}
+            </div>
+
+            <div class="flex gap-3 w-full sm:w-auto">
+                {% if can_complete %}
+                    <form action="{% url 'complete_mission' mission.id %}" method="POST" class="w-full sm:w-auto">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow">
+                            <i data-feather="check-circle" class="w-3.5 h-3.5 inline mr-1"></i> Mark Mission Completed
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Volunteers Roster -->
+    <div class="mt-8 space-y-4">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <i data-feather="users" class="w-5 h-5 text-emerald-400"></i>
+            Volunteer Roster ({{ mission.volunteers.count }})
+        </h3>
+        
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {% for volunteer in mission.volunteers.all %}
+                <div class="glass p-3.5 rounded-xl border border-slate-900 flex items-center gap-2.5">
+                    <img src="{{ volunteer.profile.avatar_url }}" class="w-8 h-8 rounded-full border border-slate-800 object-cover" alt="avatar">
+                    <div class="space-y-0.5">
+                        <span class="block text-xs font-bold text-slate-200">{{ volunteer.username }}</span>
+                        <span class="block text-[9px] text-emerald-400 capitalize font-medium">{{ volunteer.get_role_display }}</span>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-span-full glass p-6 text-center rounded-xl border border-slate-900 text-slate-500 text-xs">
+                    No volunteers registered yet. Be the first to join!
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

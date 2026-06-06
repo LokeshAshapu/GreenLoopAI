@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="text-center max-w-2xl mx-auto space-y-4 mb-16">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400">
+            <i data-feather="zap" class="w-3.5 h-3.5"></i>
+            Eco Leaderboards Active
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Community Hub</h1>
+        <p class="text-slate-400 font-light">
+            Empowering citizens and NGOs to cooperate. Earn Eco Points by scanning hazards, validating cases, and joining cleanup missions.
+        </p>
+    </div>
+
+    <!-- Leaderboard grids -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Top Citizens -->
+        <div class="glass-card p-6 rounded-2xl border border-slate-900 space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-900 pb-4">
+                <h3 class="font-extrabold text-white text-lg flex items-center gap-2">
+                    <i data-feather="smile" class="w-5 h-5 text-emerald-400"></i>
+                    Top Citizens
+                </h3>
+                <span class="text-xs text-slate-500">Reporters</span>
+            </div>
+            
+            <div class="space-y-4">
+                {% for citizen in top_citizens %}
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950/40 border border-slate-900 hover:border-slate-800 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-extrabold font-mono text-slate-500 w-4">{{ forloop.counter }}</span>
+                            <span class="text-sm font-semibold text-slate-300">{{ citizen.username }}</span>
+                        </div>
+                        <span class="text-xs font-bold text-emerald-400">{{ citizen.eco_points }} pts</span>
+                    </div>
+                {% empty %}
+                    <p class="text-xs text-slate-500 text-center py-4">No citizen records found.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Top Volunteers -->
+        <div class="glass-card p-6 rounded-2xl border border-slate-900 space-y-6 bg-gradient-to-b from-slate-900/40 to-slate-950/40">
+            <div class="flex items-center justify-between border-b border-slate-900 pb-4">
+                <h3 class="font-extrabold text-white text-lg flex items-center gap-2">
+                    <i data-feather="heart" class="w-5 h-5 text-red-400 animate-pulse"></i>
+                    Top Volunteers
+                </h3>
+                <span class="text-xs text-slate-500">Cleanup Workers</span>
+            </div>
+            
+            <div class="space-y-4">
+                {% for vol in top_volunteers %}
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950/40 border border-slate-900 hover:border-slate-800 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-extrabold font-mono text-slate-500 w-4">{{ forloop.counter }}</span>
+                            <span class="text-sm font-semibold text-slate-300">{{ vol.username }}</span>
+                        </div>
+                        <span class="text-xs font-bold text-emerald-400">{{ vol.eco_points }} pts</span>
+                    </div>
+                {% empty %}
+                    <p class="text-xs text-slate-500 text-center py-4">No volunteers registered yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Top NGOs / Organizations -->
+        <div class="glass-card p-6 rounded-2xl border border-slate-900 space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-900 pb-4">
+                <h3 class="font-extrabold text-white text-lg flex items-center gap-2">
+                    <i data-feather="award" class="w-5 h-5 text-cyan-400"></i>
+                    Top NGOs
+                </h3>
+                <span class="text-xs text-slate-500">Organizers</span>
+            </div>
+            
+            <div class="space-y-4">
+                {% for ngo in top_ngos %}
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950/40 border border-slate-900 hover:border-slate-800 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-extrabold font-mono text-slate-500 w-4">{{ forloop.counter }}</span>
+                            <span class="text-sm font-semibold text-slate-300">{{ ngo.username }}</span>
+                        </div>
+                        <span class="text-xs font-bold text-emerald-400">{{ ngo.eco_points }} pts</span>
+                    </div>
+                {% empty %}
+                    <p class="text-xs text-slate-500 text-center py-4">No NGOs registered yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

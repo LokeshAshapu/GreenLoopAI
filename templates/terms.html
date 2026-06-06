@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="glass-card p-8 rounded-2xl border border-slate-900 space-y-8 relative overflow-hidden shadow-2xl">
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl"></div>
+        
+        <div>
+            <h1 class="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+                <i data-feather="file-text" class="w-7 h-7 text-emerald-400"></i>
+                Terms of Service
+            </h1>
+            <p class="text-xs text-slate-500 mt-2">Last updated: June 06, 2026</p>
+        </div>
+
+        <div class="space-y-6 text-sm text-slate-300 font-light leading-relaxed">
+            <section class="space-y-3">
+                <h3 class="text-base font-bold text-white">1. Platform Agreement</h3>
+                <p>
+                    By registering or interacting with GreenLoop AI, you agree to these Terms of Service. If you do not agree, you are prohibited from using the platform services.
+                </p>
+            </section>
+
+            <section class="space-y-3 border-t border-slate-900 pt-6">
+                <h3 class="text-base font-bold text-white">2. Acceptable Reporting Policies</h3>
+                <p>
+                    Reporters must submit authentic, real-time photographic evidence of environmental hazards. You represent and warrant that:
+                </p>
+                <ul class="list-disc pl-5 space-y-2 text-slate-400">
+                    <li>Uploaded pictures correspond to real occurrences of plastic waste, e-waste, deforestation, or related hazards.</li>
+                    <li>Geographical coordinates (Latitude & Longitude) accurately locate the observed issue.</li>
+                    <li>No spam, fake reports, or unrelated personal images are submitted.</li>
+                </ul>
+            </section>
+
+            <section class="space-y-3 border-t border-slate-900 pt-6">
+                <h3 class="text-base font-bold text-white flex items-center gap-1"><i data-feather="zap" class="w-4 h-4 text-emerald-400"></i> 3. Eco Points & Leaderboards Integrity</h3>
+                <p>
+                    GreenLoop AI features a gamified contribution incentive. Actions yielding Eco Points (scans, votes, and cleanup participation) are audited. Any attempt to abuse reporting buttons or forge coordinates to artificially inflate Eco Points will result in immediate profile suspension and removal from community leaderboards.
+                </p>
+            </section>
+
+            <section class="space-y-3 border-t border-slate-900 pt-6">
+                <h3 class="text-base font-bold text-white">4. Role Permissions & NGO Responsibilities</h3>
+                <p>
+                    Only authorized NGOs, Municipal Officers, and Administrators may schedule cleanup missions or approve completions. Organizers are responsible for maintaining field safety guidelines during cleanup events.
+                </p>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

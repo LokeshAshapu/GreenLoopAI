@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-[85vh] flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 relative">
+    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+    <div class="max-w-xl w-full space-y-8 glass-card p-8 rounded-2xl border border-slate-800 shadow-2xl relative">
+        <div class="text-center">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 p-0.5 mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                    <i data-feather="repeat" class="w-6 h-6 text-emerald-400"></i>
+                </div>
+            </div>
+            <h2 class="mt-6 text-3xl font-extrabold text-white tracking-tight">Create your account</h2>
+            <p class="mt-2 text-sm text-slate-400">
+                Already registered?
+                <a href="{% url 'login' %}" class="font-medium text-emerald-400 hover:text-emerald-300 transition-colors">Sign in here</a>
+            </p>
+        </div>
+
+        <form class="mt-8 space-y-6" action="{% url 'signup' %}" method="POST" hx-boost="true" hx-target="body">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Username -->
+                <div>
+                    <label for="id_username" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Username *</label>
+                    <input id="id_username" name="username" type="text" required class="appearance-none rounded-xl relative block w-full px-4 py-3 bg-slate-950/80 border border-slate-800 placeholder-slate-600 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-all" placeholder="username">
+                </div>
+                
+                <!-- Email -->
+                <div>
+                    <label for="id_email" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Email address *</label>
+                    <input id="id_email" name="email" type="email" required class="appearance-none rounded-xl relative block w-full px-4 py-3 bg-slate-950/80 border border-slate-800 placeholder-slate-600 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-all" placeholder="you@example.com">
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label for="id_password" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Password * (min 12 chars)</label>
+                    <input id="id_password" name="password" type="password" minlength="12" required class="appearance-none rounded-xl relative block w-full px-4 py-3 bg-slate-950/80 border border-slate-800 placeholder-slate-600 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-all" placeholder="••••••••••••">
+                </div>
+
+                <!-- Role -->
+                <div>
+                    <label for="id_role" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Registration Role *</label>
+                    <select id="id_role" name="role" required class="appearance-none rounded-xl relative block w-full px-4 py-3 bg-slate-950/80 border border-slate-800 text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-all">
+                        <option value="citizen">Citizen (Reporter)</option>
+                        <option value="volunteer">Volunteer (Cleanup worker)</option>
+                        <option value="ngo">NGO (Mission Coordinator)</option>
+                        <option value="municipal_officer">Municipal Officer (Verifier)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Encryption warning / info for PII fields -->
+            <div class="border-t border-slate-900 pt-4 mt-4 space-y-4">
+                <div class="p-3 bg-cyan-950/20 border border-cyan-800/30 rounded-xl text-xs text-cyan-400 flex items-start gap-2">
+                    <i data-feather="shield" class="w-4 h-4 mt-0.5 flex-shrink-0"></i>
+                    <span><strong>Security Guarantee:</strong> The following fields are encrypted using field-level AES-256 Fernet keys on our servers. Even in a database leak, your address and phone number remain secure.</span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Phone -->
+                    <div>
+                        <label for="id_phone" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Phone Number</label>
+                        <input id="id_phone" name="phone" type="text" class="appearance-none rounded-xl relative block w-full px-4 py-3 bg-slate-950/80 border border-slate-800 placeholder-slate-600 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-all" placeholder="+1 (555) 123-4567">
+                    </div>
+                    
+                    <!-- Address -->
+                    <div>
+                        <label for="id_address" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Residential Address</label>
+                        <input id="id_address" name="address" type="text" class="appearance-none rounded-xl relative block w-full px-4 py-3 bg-slate-950/80 border border-slate-800 placeholder-slate-600 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-all" placeholder="123 Eco Way, Green City">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" class="w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-xl text-slate-950 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 shadow-lg shadow-emerald-500/10 transition-all hover:scale-[1.01]">
+                    Register & Create Profile
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

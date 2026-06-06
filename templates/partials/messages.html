@@ -1,0 +1,24 @@
+<div x-data="{ show: true }" x-init="setTimeout(() => show = false, 5000)" x-show="show" class="fixed top-24 right-6 z-50 max-w-sm w-full space-y-2 pointer-events-auto transition-all duration-500">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="glass-card p-4 rounded-xl flex items-start gap-3 border-l-4 shadow-2xl {% if message.tags == 'success' %}border-l-emerald-500{% else %}border-l-red-500{% endif %}">
+                <div class="flex-shrink-0">
+                    {% if message.tags == 'success' %}
+                        <i data-feather="check-circle" class="w-5 h-5 text-emerald-400"></i>
+                    {% else %}
+                        <i data-feather="alert-triangle" class="w-5 h-5 text-red-400"></i>
+                    {% endif %}
+                </div>
+                <div class="flex-1 text-sm font-medium text-slate-300">
+                    {{ message }}
+                </div>
+                <button @click="show = false" class="text-slate-500 hover:text-slate-300 transition-colors">
+                    <i data-feather="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+<script>
+    feather.replace();
+</script>

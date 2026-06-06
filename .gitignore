@@ -1,0 +1,26 @@
+# Django files
+*.log
+db.sqlite3
+db.sqlite3-journal
+.env
+
+# Static & media files
+staticfiles/
+media/
+
+# Compiled python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+.DS_Store

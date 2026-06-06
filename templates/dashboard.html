@@ -1,0 +1,430 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="dashboard-root" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="{ openReportModal: false, selectedLat: '', selectedLng: '', submitting: false }">
+    
+    <!-- Top Stats Row -->
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div class="glass-card p-5 rounded-xl border border-slate-900 flex flex-col justify-between">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Scans</span>
+            <div class="flex items-baseline justify-between mt-2">
+                <span class="text-3xl font-extrabold text-white">{{ total_reported }}</span>
+                <span class="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">All Time</span>
+            </div>
+        </div>
+        <div class="glass-card p-5 rounded-xl border border-slate-900 flex flex-col justify-between">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Verified Cases</span>
+            <div class="flex items-baseline justify-between mt-2">
+                <span class="text-3xl font-extrabold text-teal-400">{{ total_verified }}</span>
+                <span class="text-[10px] text-slate-500">Pending cleanup</span>
+            </div>
+        </div>
+        <div class="glass-card p-5 rounded-xl border border-slate-900 flex flex-col justify-between">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Resolved Issues</span>
+            <div class="flex items-baseline justify-between mt-2">
+                <span class="text-3xl font-extrabold text-emerald-400">{{ total_resolved }}</span>
+                <span class="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">Resolved</span>
+            </div>
+        </div>
+        <div class="glass-card p-5 rounded-xl border border-slate-900 flex flex-col justify-between">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg Severity</span>
+            <div class="flex items-baseline justify-between mt-2">
+                <span class="text-3xl font-extrabold text-yellow-500">{{ average_severity }}<span class="text-sm text-slate-500">/10</span></span>
+                <span class="text-[10px] text-slate-500">VLM Engine</span>
+            </div>
+        </div>
+        <div class="glass-card col-span-2 lg:col-span-1 p-5 rounded-xl border border-slate-900 flex flex-col justify-between bg-gradient-to-br from-emerald-950/20 to-slate-900">
+            <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Active Missions</span>
+            <div class="flex items-baseline justify-between mt-2">
+                <span class="text-3xl font-extrabold text-white">{{ active_missions_count }}</span>
+                <a href="#missions" class="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-0.5">
+                    Join <i data-feather="chevron-right" class="w-3.5 h-3.5"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map & Form Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <!-- Interactive Leaflet Map -->
+        <div class="lg:col-span-2 space-y-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                    <h2 class="text-xl font-bold text-white tracking-tight">Environmental Intelligence Map</h2>
+                </div>
+                <div class="text-xs text-slate-400 flex items-center gap-1.5">
+                    <i data-feather="info" class="w-4 h-4"></i>
+                    <span>Click on map to drop a coordinate pin & report issue</span>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-2xl overflow-hidden border border-slate-900 relative shadow-xl glow-emerald">
+                <div id="main-map" class="w-full h-[520px] bg-slate-950"></div>
+            </div>
+        </div>
+
+        <!-- Sidebar Actions & Reporting form -->
+        <div class="space-y-6">
+            <!-- Scan Action Button -->
+            <a href="{% url 'scanner' %}" class="block glass-card p-6 rounded-2xl border border-slate-900 hover:scale-[1.01] transition-transform duration-300 group bg-gradient-to-tr from-slate-900/60 to-emerald-950/20">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 p-0.5 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                        <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                            <i data-feather="aperture" class="w-6 h-6 text-emerald-400 group-hover:rotate-45 transition-transform duration-500"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-white text-base">Launch VLM Scanner</h3>
+                        <p class="text-xs text-slate-400 font-light mt-0.5">Analyze waste and pollutants instantly with NVIDIA Vision model</p>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Quick Report Widget -->
+            <div class="glass-card p-6 rounded-2xl border border-slate-900 relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl"></div>
+                
+                <h3 class="font-bold text-white text-lg mb-4 flex items-center gap-2">
+                    <i data-feather="plus-circle" class="w-5 h-5 text-emerald-400"></i>
+                    Report Environmental Hazard
+                </h3>
+                
+                <form id="report-form" action="{% url 'report_submit' %}" method="POST" enctype="multipart/form-data" class="space-y-4" @submit="submitting = true">
+                    {% csrf_token %}
+                    
+                    <!-- Title -->
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Issue Title *</label>
+                        <input name="title" type="text" required class="w-full rounded-lg px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500" placeholder="e.g. Chemical dumping in canal">
+                    </div>
+                    
+                    <!-- Category -->
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Pollution Category *</label>
+                        <select name="category" required class="w-full rounded-lg px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            <option value="plastic_waste">Plastic Waste</option>
+                            <option value="e_waste">E-Waste</option>
+                            <option value="water_pollution">Water Pollution</option>
+                            <option value="open_burning">Open Burning</option>
+                            <option value="illegal_dumping">Illegal Dumping</option>
+                            <option value="deforestation">Deforestation</option>
+                        </select>
+                    </div>
+
+                    <!-- Coordinates -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Latitude *</label>
+                            <input name="latitude" type="number" step="any" required x-model="selectedLat" class="w-full rounded-lg px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none" placeholder="Click map">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Longitude *</label>
+                            <input name="longitude" type="number" step="any" required x-model="selectedLng" class="w-full rounded-lg px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none" placeholder="Click map">
+                        </div>
+                    </div>
+
+                    <!-- Image -->
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Upload Evidence Image *</label>
+                        <input name="image" type="file" accept="image/*" required class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-900 file:text-slate-200 file:hover:bg-slate-800 file:cursor-pointer">
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Description & Details</label>
+                        <textarea name="description" rows="2" class="w-full rounded-lg px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none" placeholder="Exact location description..."></textarea>
+                    </div>
+
+                    <button type="submit" :disabled="submitting" class="w-full py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow shadow-emerald-500/10 flex items-center justify-center gap-2">
+                        <template x-if="!submitting">
+                            <span>Submit & Scan with NVIDIA AI</span>
+                        </template>
+                        <template x-if="submitting">
+                            <span class="flex items-center gap-2 text-slate-950 font-extrabold"><span class="w-3.5 h-3.5 rounded-full border-2 border-slate-950 border-t-transparent animate-spin inline-block"></span> Scanning with NVIDIA NIM...</span>
+                        </template>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Missions & Feed section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" id="missions">
+        
+        <!-- Cleanup Missions List -->
+        <div class="lg:col-span-2 space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <i data-feather="users" class="w-5 h-5 text-emerald-400"></i>
+                    Active Cleanup Missions
+                </h3>
+                
+                {% if user.role in 'ngo municipal_officer administrator' %}
+                <button @click="openReportModal = true" class="px-3.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 text-xs font-semibold flex items-center gap-1">
+                    <i data-feather="plus" class="w-3.5 h-3.5"></i> Schedule Mission
+                </button>
+                {% endif %}
+            </div>
+
+            <div class="space-y-4">
+                {% if active_missions %}
+                    {% for mission in active_missions %}
+                        <div class="glass-card p-6 rounded-2xl border border-slate-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-[10px] uppercase">
+                                        +{{ mission.eco_points_reward }} Pts
+                                    </span>
+                                    <span class="text-xs text-slate-500 font-medium">Scheduled: {{ mission.scheduled_time|date:"M d, Y H:i" }}</span>
+                                </div>
+                                <h4 class="font-bold text-white text-base hover:text-emerald-400 transition-colors"><a href="{% url 'mission_detail' mission.id %}">{{ mission.title }}</a></h4>
+                                <p class="text-xs text-slate-400 font-light line-clamp-2">{{ mission.description }}</p>
+                                
+                                <div class="flex items-center gap-2 text-[11px] text-slate-500">
+                                    <span class="flex items-center gap-1"><i data-feather="user" class="w-3.5 h-3.5"></i> Organizer: {{ mission.organizer.username }}</span>
+                                    <span>&bull;</span>
+                                    <span class="flex items-center gap-1"><i data-feather="users" class="w-3.5 h-3.5"></i> {{ mission.volunteers.count }} Volunteers</span>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 w-full sm:w-auto">
+                                <a href="{% url 'mission_detail' mission.id %}" class="block text-center px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white rounded-xl border border-slate-800 text-xs font-bold transition-colors">
+                                    View details
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="glass-card p-8 text-center rounded-2xl border border-slate-900">
+                        <p class="text-sm text-slate-500">No cleanup missions active. Check back later or create one.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Submissions Feed -->
+        <div class="space-y-4">
+            <h3 class="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                <i data-feather="activity" class="w-5 h-5 text-emerald-400"></i>
+                Recent Scans
+            </h3>
+            
+            <div class="space-y-4">
+                {% for r in recent_reports %}
+                    <div class="glass p-4 rounded-xl border border-slate-900 flex gap-4">
+                        <img src="{{ r.image.url }}" class="w-16 h-16 rounded-lg object-cover border border-slate-800 flex-shrink-0" alt="Evidence">
+                        <div class="space-y-1">
+                            <h5 class="text-sm font-bold text-white leading-tight"><a href="{% url 'scanner_detail' r.id %}" class="hover:text-emerald-400 transition-colors">{{ r.title }}</a></h5>
+                            <p class="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">{{ r.get_category_display }}</p>
+                            
+                            <div class="flex items-center gap-2 mt-1.5">
+                                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase 
+                                    {% if r.status == 'resolved' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+                                    {% elif r.status == 'verified' %}bg-teal-500/10 text-teal-400 border border-teal-500/20
+                                    {% else %}bg-slate-900 text-slate-400 border border-slate-800{% endif %}">
+                                    {{ r.get_status_display }}
+                                </span>
+                                <span class="text-[10px] text-slate-500">{{ r.created_at|timesince }} ago</span>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="glass p-4 text-center rounded-xl border border-slate-900">
+                        <p class="text-xs text-slate-500">No reports recorded yet.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Mission Modal -->
+    <div x-show="openReportModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm" style="display: none;">
+        <div @click.away="openReportModal = false" class="glass-card max-w-md w-full p-6 rounded-2xl border border-slate-800 shadow-2xl relative">
+            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <i data-feather="calendar" class="w-5 h-5 text-emerald-400"></i>
+                Schedule Cleanup Mission
+            </h3>
+            
+            <form action="{% url 'create_mission' %}" method="POST" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Mission Title *</label>
+                    <input name="title" type="text" required class="w-full rounded-lg px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none" placeholder="e.g. Central Park Garbage Cleanup">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Details & Tasks *</label>
+                    <textarea name="description" rows="3" required class="w-full rounded-lg px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none" placeholder="Provide event instructions..."></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Scheduled Time *</label>
+                        <input name="scheduled_time" type="datetime-local" required class="w-full rounded-lg px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-slate-300 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Points Reward *</label>
+                        <input name="eco_points_reward" type="number" value="100" class="w-full rounded-lg px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Associate Environmental Scan ID (Optional)</label>
+                    <input name="report_id" type="number" class="w-full rounded-lg px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none" placeholder="Enter scan ID">
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" @click="openReportModal = false" class="w-1/2 py-2 border border-slate-800 text-xs text-slate-400 hover:text-white rounded-lg transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="w-1/2 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold rounded-lg text-xs transition-colors">
+                        Schedule
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Safe HTML escaper to prevent stored XSS from user report titles/descriptions
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+
+        // Initialize Leaflet Map (Default coordinates centered around generic coordinates or user locality)
+        // Center around New York / central coords
+        const map = L.map('main-map').setView([40.7128, -74.0060], 12);
+
+        // OpenStreetMap Dark Theme Tiles (CartoDB Dark Matter)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+
+        // Handle Map click to auto-fill Latitude & Longitude in the form
+        const formEl = document.getElementById('report-form');
+        let clickMarker = null;
+
+        map.on('click', function(e) {
+            const lat = e.latlng.lat.toFixed(6);
+            const lng = e.latlng.lng.toFixed(6);
+
+            // Access Alpine context to set model coordinates dynamically
+            const rootEl = document.getElementById('dashboard-root');
+            if (rootEl && window.Alpine) {
+                const alpineCtx = Alpine.$data(rootEl);
+                alpineCtx.selectedLat = lat;
+                alpineCtx.selectedLng = lng;
+            }
+
+            // Direct fallback setting of form inputs
+            const latInput = document.querySelector('input[name="latitude"]');
+            const lngInput = document.querySelector('input[name="longitude"]');
+            if (latInput) latInput.value = lat;
+            if (lngInput) lngInput.value = lng;
+
+            // Update local clicked pin marker
+            if (clickMarker) {
+                clickMarker.setLatLng(e.latlng);
+            } else {
+                clickMarker = L.marker(e.latlng, {
+                    icon: L.divIcon({
+                        className: 'custom-div-icon',
+                        html: "<div class='w-4 h-4 rounded-full bg-emerald-400 border-2 border-slate-900 shadow shadow-emerald-400 animate-pulse'></div>",
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8]
+                    })
+                }).addTo(map);
+            }
+        });
+
+        // Load active reports from API as GeoJSON points
+        fetch("{% url 'api_reports_geojson' %}")
+            .then(res => res.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    pointToLayer: function (feature, latlng) {
+                        // Color colorizer based on severity
+                        const severity = feature.properties.severity || 5;
+                        let pinColor = 'bg-yellow-500'; // Medium
+                        if (severity >= 7.5) {
+                            pinColor = 'bg-red-500 animate-pulse'; // High/Severe
+                        } else if (severity < 4.0) {
+                            pinColor = 'bg-cyan-500'; // Low
+                        }
+
+                        return L.marker(latlng, {
+                            icon: L.divIcon({
+                                className: 'custom-report-pin',
+                                html: `<div class='w-5 h-5 rounded-full ${pinColor} border-2 border-slate-900 flex items-center justify-center text-[10px] text-slate-950 font-extrabold shadow-lg shadow-black/65'>${Math.round(severity)}</div>`,
+                                iconSize: [20, 20],
+                                iconAnchor: [10, 10]
+                            })
+                        });
+                    },
+                    onEachFeature: function (feature, layer) {
+                        const props = feature.properties;
+                        
+                        // Create Leaflet Popup Layout matching Apple Glassmorphism styling
+                        const popupContent = `
+                            <div class="p-3 bg-slate-950/95 text-slate-200 rounded-xl border border-slate-800 max-w-[240px] text-xs space-y-2.5 font-sans">
+                                ${props.image_url ? `<img src="${props.image_url}" class="w-full h-24 object-cover rounded-lg border border-slate-800" />` : ''}
+                                <div>
+                                    <h4 class="font-bold text-white text-sm line-clamp-1">${escapeHTML(props.title)}</h4>
+                                    <p class="text-[10px] text-slate-400 font-medium uppercase mt-0.5">${escapeHTML(props.category_display)}</p>
+                                </div>
+                                <div class="flex items-center justify-between text-[11px]">
+                                    <span class="text-slate-500">Status:</span>
+                                    <span class="font-bold text-emerald-400">${props.status_display}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-[11px]">
+                                    <span class="text-slate-500">Risk Severity:</span>
+                                    <span class="px-1.5 py-0.2 bg-red-950/40 text-red-400 rounded border border-red-900/30 font-bold">${props.severity}/10</span>
+                                </div>
+                                <div class="pt-2 border-t border-slate-800 flex justify-between gap-2">
+                                    <a href="/scanner/${props.id}/" class="w-full py-1 text-center bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded font-semibold text-slate-300 hover:text-white transition-colors" style="text-decoration:none;">Details</a>
+                                </div>
+                            </div>
+                        `;
+                        
+                        layer.bindPopup(popupContent, {
+                            closeButton: false,
+                            className: 'custom-leaflet-popup'
+                        });
+                    }
+                }).addTo(map);
+
+                // Auto fit map view bounds if markers are populated
+                if (data.features.length > 0) {
+                    const geojsonLayer = L.geoJSON(data);
+                    map.fitBounds(geojsonLayer.getBounds(), { padding: [40, 40] });
+                }
+            })
+            .catch(err => console.error("Failed to load geojson reports: ", err));
+    });
+</script>
+
+<style>
+    /* Styling to match Leaflet popup box structure to Dark Glassmorphism themes */
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+    .leaflet-popup-content {
+        margin: 0 !important;
+    }
+</style>
+{% endblock %}

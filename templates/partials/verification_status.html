@@ -1,0 +1,51 @@
+<div class="glass-card p-6 rounded-2xl border border-slate-900 space-y-4" id="verification-console">
+    <h3 class="text-base font-bold text-white flex items-center gap-2">
+        <i data-feather="check-square" class="w-5 h-5 text-emerald-400"></i>
+        Community Verification Portal
+    </h3>
+    
+    {% if success %}
+        <div class="p-4 bg-emerald-950/20 border border-emerald-800/30 rounded-xl text-xs text-emerald-400 flex items-start gap-2">
+            <i data-feather="check-circle" class="w-4 h-4 mt-0.5 flex-shrink-0"></i>
+            <span><strong>Thank you!</strong> Your verification vote has been logged. You earned <strong>{{ points_awarded }} Eco Points</strong>!</span>
+        </div>
+    {% elif voted_already %}
+        <div class="p-4 bg-yellow-950/20 border border-yellow-800/30 rounded-xl text-xs text-yellow-400 flex items-start gap-2">
+            <i data-feather="alert-circle" class="w-4 h-4 mt-0.5 flex-shrink-0"></i>
+            <span>{{ message|default:"You have already voted on this report." }}</span>
+        </div>
+    {% else %}
+        <div class="p-4 bg-red-950/20 border border-red-800/30 rounded-xl text-xs text-red-400 flex items-start gap-2">
+            <i data-feather="x-circle" class="w-4 h-4 mt-0.5 flex-shrink-0"></i>
+            <span>Error occurred: {{ error|default:"Failed to register vote." }}</span>
+        </div>
+    {% endif %}
+
+    <!-- Display existing votes (reload list or show update msg) -->
+    <div class="border-t border-slate-900 pt-4 mt-2">
+        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-3">Verification Logs ({{ report.verifications.count }})</span>
+        <div class="space-y-3">
+            {% for v in report.verifications.all %}
+                <div class="flex items-start gap-2 text-xs border-b border-slate-900/60 pb-2.5">
+                    <i data-feather="user" class="w-4 h-4 text-slate-500 mt-0.5"></i>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-slate-300">{{ v.user.username }}</span>
+                            <span class="px-1 py-0.2 rounded font-bold uppercase text-[9px] {% if v.is_valid %}bg-emerald-500/10 text-emerald-400{% else %}bg-red-500/10 text-red-400{% endif %}">
+                                {% if v.is_valid %}Valid{% else %}Spam{% endif %}
+                            </span>
+                        </div>
+                        <p class="text-slate-400 font-light">{{ v.comments }}</p>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-xs text-slate-500">No verification logs submitted yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Re-initialize feather icons for the new HTMX swapped element
+    feather.replace();
+</script>

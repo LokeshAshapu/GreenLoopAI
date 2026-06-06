@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="chatbot()">
+    
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 h-[calc(100vh-12rem)] min-h-[520px]">
+        
+        <!-- Sidebar Prompts -->
+        <div class="lg:col-span-1 glass-card p-6 rounded-2xl border border-slate-900 flex flex-col justify-between h-full">
+            <div class="space-y-6">
+                <div>
+                    <h3 class="font-extrabold text-white text-base flex items-center gap-2">
+                        <i data-feather="message-circle" class="w-5 h-5 text-emerald-400"></i>
+                        GreenBot AI
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Your environmental intelligence assistant powered by NVIDIA NIM Llama-3.1.</p>
+                </div>
+                
+                <div class="space-y-3 pt-4 border-t border-slate-900/60">
+                    <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Quick Prompts</span>
+                    
+                    <button @click="sendPrompt('How can citizens report illegal dumping?')" class="w-full text-left p-3 rounded-xl bg-slate-950/50 border border-slate-900 text-xs text-slate-400 hover:text-emerald-400 hover:border-emerald-500/20 transition-all font-light leading-relaxed">
+                        "How can citizens report illegal dumping?"
+                    </button>
+                    
+                    <button @click="sendPrompt('What is the Eco Points reward system?')" class="w-full text-left p-3 rounded-xl bg-slate-950/50 border border-slate-900 text-xs text-slate-400 hover:text-emerald-400 hover:border-emerald-500/20 transition-all font-light leading-relaxed">
+                        "What is the Eco Points reward system?"
+                    </button>
+                    
+                    <button @click="sendPrompt('Provide local e-waste disposal guidance.')" class="w-full text-left p-3 rounded-xl bg-slate-950/50 border border-slate-900 text-xs text-slate-400 hover:text-emerald-400 hover:border-emerald-500/20 transition-all font-light leading-relaxed">
+                        "Provide local e-waste disposal guidance."
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-3 bg-emerald-950/20 border border-emerald-800/20 rounded-xl text-[10px] text-emerald-400 flex items-start gap-2">
+                <i data-feather="shield" class="w-4 h-4 flex-shrink-0 mt-0.5"></i>
+                <span>NVIDIA NIM live endpoint active. Messages are evaluated in real-time.</span>
+            </div>
+        </div>
+
+        <!-- Main Chat Box -->
+        <div class="lg:col-span-3 glass-card rounded-2xl border border-slate-900 flex flex-col justify-between h-full overflow-hidden shadow-2xl relative">
+            
+            <!-- Chat Header -->
+            <div class="px-6 py-4 border-b border-slate-900 bg-slate-950/30 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 p-0.5 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                        <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                            <i data-feather="cpu" class="w-5 h-5 text-emerald-400 animate-pulse"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white text-sm">GreenBot</h4>
+                        <span class="text-[10px] text-emerald-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Live Environmental Assistant</span>
+                    </div>
+                </div>
+                
+                <button @click="clearChat()" class="text-xs text-slate-500 hover:text-red-400 transition-colors flex items-center gap-1">
+                    <i data-feather="trash-2" class="w-3.5 h-3.5"></i> Clear Chat
+                </button>
+            </div>
+
+            <!-- Messages Window -->
+            <div class="flex-1 p-6 overflow-y-auto space-y-4" id="messages-container">
+                <template x-for="msg in messages" :key="msg.id">
+                    <div class="flex items-start gap-3.5" :class="msg.sender === 'user' ? 'justify-end' : 'justify-start'">
+                        
+                        <!-- Avatar for bot -->
+                        <div x-show="msg.sender === 'bot'" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center flex-shrink-0">
+                            <i data-feather="repeat" class="w-4 h-4 text-emerald-400"></i>
+                        </div>
+
+                        <!-- Chat bubble -->
+                        <div class="max-w-[75%] p-3.5 rounded-2xl border text-xs leading-relaxed font-light"
+                             :class="msg.sender === 'user' 
+                                ? 'bg-gradient-to-tr from-emerald-600/20 to-teal-700/20 border-emerald-500/20 text-emerald-100 rounded-tr-none' 
+                                : 'bg-slate-950/60 border-slate-900 text-slate-300 rounded-tl-none'">
+                            <span x-html="formatMessage(msg.text)"></span>
+                        </div>
+                        
+                        <!-- Avatar for user -->
+                        <div x-show="msg.sender === 'user'" class="w-8 h-8 rounded-full border border-slate-800 overflow-hidden flex-shrink-0">
+                            <img src="{{ user.profile.avatar_url }}" class="w-full h-full object-cover" alt="avatar">
+                        </div>
+
+                    </div>
+                </template>
+
+                <!-- Typing indicator -->
+                <div x-show="typing" class="flex items-start gap-3.5 justify-start" style="display: none;">
+                    <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center flex-shrink-0">
+                        <i data-feather="repeat" class="w-4 h-4 text-emerald-400"></i>
+                    </div>
+                    <div class="bg-slate-950/60 border border-slate-900 p-3.5 rounded-2xl rounded-tl-none flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-slate-600 animate-bounce" style="animation-delay: 0.1s"></span>
+                        <span class="w-2 h-2 rounded-full bg-slate-600 animate-bounce" style="animation-delay: 0.2s"></span>
+                        <span class="w-2 h-2 rounded-full bg-slate-600 animate-bounce" style="animation-delay: 0.3s"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Box -->
+            <div class="p-4 border-t border-slate-900 bg-slate-950/20">
+                <form @submit.prevent="sendMessage()" class="flex gap-3 relative">
+                    <input type="text" x-model="userInput" required :disabled="typing"
+                           class="w-full rounded-xl px-4 py-3.5 bg-slate-950 border border-slate-800 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-transparent transition-all pr-14" 
+                           placeholder="Ask about water pollution, e-waste, cleaning up, etc...">
+                    
+                    <button type="submit" :disabled="typing"
+                            class="absolute right-2 top-2 p-2 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold transition-all flex items-center justify-center shadow">
+                        <i data-feather="send" class="w-4 h-4"></i>
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function chatbot() {
+        return {
+            userInput: '',
+            messages: [
+                {
+                    id: 1,
+                    sender: 'bot',
+                    text: 'Hello! I am GreenBot, your environmental intelligence chatbot. How can I help you support GreenLoop AI today?'
+                }
+            ],
+            typing: false,
+            
+            init() {
+                // Initialize Feather icons after render
+                this.$nextTick(() => { feather.replace(); });
+            },
+
+            sendPrompt(promptText) {
+                this.userInput = promptText;
+                this.sendMessage();
+            },
+
+            async sendMessage() {
+                if (!this.userInput.trim()) return;
+                
+                const userMsg = this.userInput;
+                this.userInput = '';
+                
+                // Add user message
+                this.messages.push({
+                    id: Date.now(),
+                    sender: 'user',
+                    text: userMsg
+                });
+                
+                this.scrollChat();
+                this.typing = true;
+                
+                try {
+                    const response = await fetch('/chatbot/api/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({ message: userMsg })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Add bot message
+                    this.messages.push({
+                        id: Date.now() + 1,
+                        sender: 'bot',
+                        text: data.reply || 'I am sorry, I encountered a communication error with my core network.'
+                    });
+                } catch (e) {
+                    this.messages.push({
+                        id: Date.now() + 1,
+                        sender: 'bot',
+                        text: 'An error occurred connecting to GreenBot AI. Please verify settings.'
+                    });
+                } finally {
+                    this.typing = false;
+                    this.scrollChat();
+                    this.$nextTick(() => { feather.replace(); });
+                }
+            },
+
+            clearChat() {
+                this.messages = [
+                    {
+                        id: Date.now(),
+                        sender: 'bot',
+                        text: 'Chat history cleared. How can I help you support GreenLoop AI today?'
+                    }
+                ];
+                this.$nextTick(() => { feather.replace(); });
+            },
+
+            scrollChat() {
+                this.$nextTick(() => {
+                    const container = document.getElementById('messages-container');
+                    container.scrollTop = container.scrollHeight;
+                });
+            },
+
+            formatMessage(text) {
+                if (!text) return '';
+                // Simple Markdown-to-HTML parser for code blocks and bold items
+                let formatted = text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/`(.*?)`/g, '<code class="bg-slate-900 px-1 py-0.5 rounded text-emerald-400 font-mono text-[10px]">$1</code>')
+                    .replace(/\n/g, '<br/>');
+                return formatted;
+            }
+        };
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="glass-card p-8 rounded-2xl border border-slate-900 space-y-8 relative overflow-hidden shadow-2xl">
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl"></div>
+        
+        <div>
+            <h1 class="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+                <i data-feather="shield" class="w-7 h-7 text-emerald-400"></i>
+                Privacy Policy
+            </h1>
+            <p class="text-xs text-slate-500 mt-2">Last updated: June 06, 2026</p>
+        </div>
+
+        <div class="space-y-6 text-sm text-slate-300 font-light leading-relaxed">
+            <section class="space-y-3">
+                <h3 class="text-base font-bold text-white">1. Information We Collect</h3>
+                <p>
+                    GreenLoop AI collects information to enable civilian environmental reporting. This includes:
+                </p>
+                <ul class="list-disc pl-5 space-y-2 text-slate-400">
+                    <li><strong>Account Details:</strong> Username, email, and password.</li>
+                    <li><strong>Contact Information:</strong> Phone number and residential address (see Encryption details below).</li>
+                    <li><strong>Environmental Reports:</strong> Uploaded images, textual hazard descriptions, and GPS coordinates (Latitude & Longitude).</li>
+                </ul>
+            </section>
+
+            <section class="space-y-3 border-t border-slate-900 pt-6">
+                <h3 class="text-base font-bold text-white flex items-center gap-1.5"><i data-feather="lock" class="w-4 h-4 text-emerald-400"></i> 2. Cyber-Security & Field-Level Encryption</h3>
+                <p>
+                    We prioritize civilian reporter safety. Sensitive personal data (including phone numbers, physical addresses, and precise hazard descriptions) is processed using <strong>AES-256 Fernet encryption</strong> prior to database persistence.
+                </p>
+                <p>
+                    Keys are isolated in protected environments. This guarantees that even in the event of a database compromise, all personally identifiable information (PII) remains completely illegible.
+                </p>
+            </section>
+
+            <section class="space-y-3 border-t border-slate-900 pt-6">
+                <h3 class="text-base font-bold text-white">3. How We Use Information</h3>
+                <p>
+                    Collected data is utilized strictly for platform services:
+                </p>
+                <ul class="list-disc pl-5 space-y-2 text-slate-400">
+                    <li>Evaluating uploads using <strong>NVIDIA NIM Vision Language Models (VLM)</strong>.</li>
+                    <li>Rendering coordinate pins on interactive Leaflet Maps for public view.</li>
+                    <li>Coordinating volunteer cleanup activities and awarding Eco Points.</li>
+                </ul>
+            </section>
+
+            <section class="space-y-3 border-t border-slate-900 pt-6">
+                <h3 class="text-base font-bold text-white">4. Data Sharing & Third-Party Integrations</h3>
+                <p>
+                    We do not sell user data. Images uploaded for environmental scans are securely transmitted to the **NVIDIA NIM API** for automated hazard evaluation. Coordinate points are publicly visible to municipal officers and volunteers to organize cleanups.
+                </p>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

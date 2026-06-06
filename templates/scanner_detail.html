@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Back link -->
+    <div class="mb-6">
+        <a href="{% url 'dashboard' %}" class="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-400 transition-colors font-semibold">
+            <i data-feather="chevron-left" class="w-4 h-4"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Header Title -->
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-extrabold text-white tracking-tight">{{ report.title }}</h1>
+            <p class="text-xs text-slate-400 uppercase tracking-wide font-semibold mt-1">
+                Category: {{ report.get_category_display }} &bull; Scan ID: #{{ report.id }}
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 font-medium">Status:</span>
+            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider
+                {% if report.status == 'resolved' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+                {% elif report.status == 'verified' %}bg-teal-500/10 text-teal-400 border border-teal-500/20
+                {% else %}bg-slate-900 text-slate-400 border border-slate-800{% endif %}">
+                {{ report.get_status_display }}
+            </span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left Column: Image & Details -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="glass-card rounded-2xl overflow-hidden border border-slate-900 shadow-xl">
+                <img src="{{ report.image.url }}" class="w-full max-h-[480px] object-cover" alt="Evidence">
+            </div>
+
+            <!-- Details Card -->
+            <div class="glass-card p-6 rounded-2xl border border-slate-900 space-y-6">
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Description</h3>
+                    <p class="text-sm text-slate-300 leading-relaxed font-light">
+                        {{ report.description|default:"No description provided." }}
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-900 pt-6">
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Reporter</span>
+                        <span class="text-sm font-semibold text-slate-200">{{ report.reporter.username }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Latitude</span>
+                        <span class="text-sm font-mono text-slate-200">{{ report.latitude }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Longitude</span>
+                        <span class="text-sm font-mono text-slate-200">{{ report.longitude }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Report Date</span>
+                        <span class="text-sm font-semibold text-slate-200">{{ report.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verification Voting section -->
+            <div class="glass-card p-6 rounded-2xl border border-slate-900 space-y-4" id="verification-console">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i data-feather="check-square" class="w-5 h-5 text-emerald-400"></i>
+                    Community Verification Portal
+                </h3>
+                
+                {% if report.status == 'submitted' or report.status == 'verifying' %}
+                    <div class="p-4 bg-yellow-950/20 border border-yellow-800/30 rounded-xl text-xs text-yellow-400 flex items-start gap-2">
+                        <i data-feather="alert-circle" class="w-4 h-4 mt-0.5 flex-shrink-0"></i>
+                        <span>This issue is currently <strong>unverified</strong>. Citizen inspectors and authorities are requested to verify legitimacy. Verifying rewards 10 Eco Points.</span>
+                    </div>
+                    
+                    <form hx-post="{% url 'report_verify_htmx' report.id %}" hx-target="#verification-console" hx-swap="outerHTML" class="space-y-4">
+                        {% csrf_token %}
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Verification Comments *</label>
+                            <textarea name="comments" required rows="2" class="w-full rounded-lg px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none" placeholder="Provide any details about the current state of the hazard..."></textarea>
+                        </div>
+                        
+                        <div class="flex gap-4">
+                            <button type="submit" name="is_valid" value="true" class="w-1/2 py-2.5 px-4 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5">
+                                <i data-feather="check" class="w-4 h-4"></i> Approve / Verify Issue
+                            </button>
+                            <button type="submit" name="is_valid" value="false" class="w-1/2 py-2.5 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5">
+                                <i data-feather="x" class="w-4 h-4"></i> Flag as Spam / Fake
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="p-4 bg-emerald-950/20 border border-emerald-800/30 rounded-xl text-xs text-emerald-400 flex items-start gap-2">
+                        <i data-feather="check-circle" class="w-4 h-4 mt-0.5 flex-shrink-0"></i>
+                        <span>This issue has been successfully **{{ report.get_status_display }}**. The validation threshold has been satisfied. No further votes are required.</span>
+                    </div>
+                {% endif %}
+                
+                <!-- Display existing votes -->
+                <div class="border-t border-slate-900 pt-4 mt-2">
+                    <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-3">Verification Logs ({{ report.verifications.count }})</span>
+                    <div class="space-y-3">
+                        {% for v in report.verifications.all %}
+                            <div class="flex items-start gap-2 text-xs border-b border-slate-900/60 pb-2.5">
+                                <i data-feather="user" class="w-4 h-4 text-slate-500 mt-0.5"></i>
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-slate-300">{{ v.user.username }}</span>
+                                        <span class="px-1 py-0.2 rounded font-bold uppercase text-[9px] {% if v.is_valid %}bg-emerald-500/10 text-emerald-400{% else %}bg-red-500/10 text-red-400{% endif %}">
+                                            {% if v.is_valid %}Valid{% else %}Spam{% endif %}
+                                        </span>
+                                    </div>
+                                    <p class="text-slate-400 font-light">{{ v.comments }}</p>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-xs text-slate-500">No verification logs submitted yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: VLM Diagnostics -->
+        <div class="space-y-6">
+            <h3 class="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                <i data-feather="cpu" class="w-5 h-5 text-emerald-400"></i>
+                AI Scanner Analysis
+            </h3>
+
+            {% if has_ai %}
+                <div class="glass-card p-6 rounded-2xl border border-slate-900 space-y-6 glow-emerald">
+                    
+                    <!-- Confidence Score Meter -->
+                    <div class="text-center space-y-2">
+                        <div class="inline-flex items-center justify-center p-1 rounded-full bg-slate-950 border border-slate-800 w-24 h-24 mx-auto">
+                            <div class="text-center">
+                                <span class="block text-2xl font-extrabold text-white">{{ report.ai_analysis.confidence_score|floatformat:0 }}%</span>
+                                <span class="text-[9px] text-emerald-400 uppercase tracking-wider font-bold">Conf</span>
+                            </div>
+                        </div>
+                        <span class="block text-xs text-slate-400 font-light">NVIDIA NIM VLM model certainty</span>
+                    </div>
+
+                    <!-- Severity Score -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-400 font-semibold">Risk Severity Score</span>
+                            <span class="font-extrabold text-yellow-500">{{ report.ai_analysis.severity_score }}/10.0</span>
+                        </div>
+                        <div class="w-full bg-slate-950 border border-slate-800 rounded-full h-2.5">
+                            <div class="bg-yellow-500 h-2.5 rounded-full" style="width: {{ severity_pct }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Environmental Risk Index -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-400 font-semibold">Environmental Risk Index</span>
+                            <span class="font-extrabold text-red-400">{{ report.ai_analysis.environmental_risk_index }}/10.0</span>
+                        </div>
+                        <div class="w-full bg-slate-950 border border-slate-800 rounded-full h-2.5">
+                            <div class="bg-red-400 h-2.5 rounded-full" style="width: {{ risk_pct }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Recommended Action -->
+                    <div class="space-y-2 border-t border-slate-900 pt-4">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+                            <i data-feather="check-circle" class="w-4 h-4"></i> Recommended Actions
+                        </h4>
+                        <p class="text-xs text-slate-300 leading-relaxed font-light">
+                            {{ report.ai_analysis.recommended_action }}
+                        </p>
+                    </div>
+
+                    <!-- Health Risk Summary -->
+                    <div class="space-y-2 border-t border-slate-900 pt-4">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                            <i data-feather="alert-triangle" class="w-4 h-4"></i> Health & Ecological Hazard
+                        </h4>
+                        <p class="text-xs text-slate-300 leading-relaxed font-light">
+                            {{ report.ai_analysis.health_risk_summary }}
+                        </p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="glass-card p-6 text-center rounded-2xl border border-slate-900">
+                    <div class="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-slate-500 mb-3">
+                        <i data-feather="loader" class="w-5 h-5 animate-spin"></i>
+                    </div>
+                    <p class="text-sm text-slate-400">AI analysis is currently processing. Check back shortly.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

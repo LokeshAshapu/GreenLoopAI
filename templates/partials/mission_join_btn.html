@@ -1,0 +1,19 @@
+<button hx-post="{% url 'join_mission' mission.id %}" 
+        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+        hx-target="this" 
+        hx-swap="outerHTML"
+        class="w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer 
+        {% if joined %}
+            bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20
+        {% else %}
+            bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20
+        {% endif %}">
+    {% if joined %}
+        <i data-feather="user-x" class="w-4 h-4"></i> Leave Mission
+    {% else %}
+        <i data-feather="user-plus" class="w-4 h-4"></i> Join Cleanup Mission
+    {% endif %}
+</button>
+<script>
+    feather.replace();
+</script>

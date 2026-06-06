@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left: Summary Stats & Badge Achievements -->
+        <div class="space-y-6">
+            <!-- Profile Card -->
+            <div class="glass-card p-6 rounded-2xl border border-slate-900 text-center space-y-4">
+                <img src="{{ profile.avatar_url }}" class="w-24 h-24 rounded-full border border-slate-800 object-cover mx-auto shadow-xl" alt="avatar">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white">{{ user.username }}</h2>
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 capitalize">{{ user.get_role_display }}</span>
+                </div>
+                
+                <div class="border-t border-slate-900 pt-4 flex justify-between items-center text-xs">
+                    <span class="text-slate-500">Points Balance</span>
+                    <span class="font-bold text-emerald-400 flex items-center gap-1"><i data-feather="zap" class="w-3.5 h-3.5 fill-emerald-400"></i> {{ user.eco_points }} Pts</span>
+                </div>
+            </div>
+
+            <!-- Badges Card -->
+            <div class="glass-card p-6 rounded-2xl border border-slate-900 space-y-4">
+                <h3 class="font-bold text-white text-base flex items-center gap-2">
+                    <i data-feather="award" class="w-5 h-5 text-cyan-400"></i>
+                    Achievements & Badges
+                </h3>
+                
+                <div class="space-y-3">
+                    {% for ua in user.achievements.all %}
+                        <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-950/40 border border-slate-900">
+                            <div class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                                <i data-feather="{{ ua.achievement.badge_icon|default:'award' }}" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-white">{{ ua.achievement.name }}</h4>
+                                <p class="text-[10px] text-slate-500 leading-tight">{{ ua.achievement.description }}</p>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-4 text-xs text-slate-500 font-light">
+                            No badges unlocked yet. Gather Eco Points to unlock!
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Profile Settings Form -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="glass-card p-8 rounded-2xl border border-slate-900 space-y-6">
+                <div>
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-feather="settings" class="w-5 h-5 text-emerald-400"></i>
+                        Profile Settings
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1">Manage user contact details and security permissions.</p>
+                </div>
+
+                <form action="{% url 'profile' %}" method="POST" hx-boost="true" hx-target="body" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Username (Disabled) -->
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Username</label>
+                            <input type="text" disabled value="{{ user.username }}" class="w-full rounded-xl px-4 py-3 bg-slate-950/40 border border-slate-900 text-sm text-slate-500 cursor-not-allowed">
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Email Address</label>
+                            <input name="email" type="email" required value="{{ user.email }}" class="w-full rounded-xl px-4 py-3 bg-slate-950 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                    </div>
+
+                    <!-- Bio -->
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Bio & Achievements Notes</label>
+                        <textarea name="bio" rows="3" class="w-full rounded-xl px-4 py-3 bg-slate-950 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">{{ profile.bio }}</textarea>
+                    </div>
+
+                    <!-- Cryptography Encrypted Contact Inputs -->
+                    <div class="border-t border-slate-900 pt-6 mt-4 space-y-4">
+                        <div class="p-3.5 bg-cyan-950/20 border border-cyan-800/30 rounded-xl text-xs text-cyan-400 flex items-start gap-2">
+                            <i data-feather="lock" class="w-4 h-4 mt-0.5 flex-shrink-0"></i>
+                            <span>These fields are processed through local Django Cryptography middleware before database storage. They are decrypted in-memory only on your secure view profile request.</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Phone -->
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Phone (Encrypted)</label>
+                                <input name="phone" type="text" value="{{ profile.phone }}" class="w-full rounded-xl px-4 py-3 bg-slate-950 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="+1 (555) 123-4567">
+                            </div>
+                            
+                            <!-- Address -->
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Address (Encrypted)</label>
+                                <input name="address" type="text" value="{{ profile.address }}" class="w-full rounded-xl px-4 py-3 bg-slate-950 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="123 Eco Way, Green City">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold rounded-xl text-sm transition-colors shadow">
+                        Save Profile Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

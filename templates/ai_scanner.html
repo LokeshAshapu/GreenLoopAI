@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12" x-data="{ dragging: false, previewUrl: null, submitting: false }">
+    
+    <div class="text-center max-w-2xl mx-auto space-y-4 mb-12">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400">
+            <i data-feather="aperture" class="w-3.5 h-3.5"></i>
+            NVIDIA NIM Integration Active
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Environmental Image Analyzer</h1>
+        <p class="text-slate-400 font-light">
+            Upload an image of an environmental hazard. Our VLM classifier analyzes plastic, water pollutants, debris, illegal dumps, deforestation, and air hazards.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Upload Card -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="glass-card p-8 rounded-2xl border border-slate-900 shadow-xl relative overflow-hidden" 
+                 :class="{ 'border-emerald-500 bg-emerald-950/5 glow-emerald': dragging }"
+                 @dragover.prevent="dragging = true"
+                 @dragleave.prevent="dragging = false"
+                 @drop.prevent="dragging = false; 
+                               const file = $event.dataTransfer.files[0]; 
+                               if(file) { 
+                                   $refs.fileInput.files = $event.dataTransfer.files; 
+                                   previewUrl = URL.createObjectURL(file); 
+                               }">
+                
+                <form action="{% url 'report_submit' %}" method="POST" enctype="multipart/form-data" class="space-y-6" @submit="submitting = true">
+                    {% csrf_token %}
+                    
+                    <!-- Drag and Drop Area -->
+                    <div class="w-full min-h-[260px] rounded-xl border border-dashed border-slate-800 bg-slate-950/60 flex flex-col items-center justify-center p-6 text-center hover:border-slate-700 transition-colors cursor-pointer relative"
+                         @click="$refs.fileInput.click()">
+                        
+                        <input x-ref="fileInput" name="image" type="file" accept="image/*" class="hidden" required
+                               @change="const file = $event.target.files[0]; if(file) previewUrl = URL.createObjectURL(file);">
+                        
+                        <div class="space-y-4" x-show="!previewUrl">
+                            <div class="w-14 h-14 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 mx-auto shadow">
+                                <i data-feather="upload-cloud" class="w-7 h-7"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-white">Click to upload or drag & drop</p>
+                                <p class="text-xs text-slate-500 mt-1">PNG, JPG, JPEG up to 10MB</p>
+                            </div>
+                        </div>
+
+                        <!-- Image Preview -->
+                        <div x-show="previewUrl" class="w-full space-y-4 relative" style="display: none;">
+                            <img :src="previewUrl" class="max-h-64 mx-auto rounded-lg object-contain border border-slate-800 bg-slate-900" alt="Evidence Preview">
+                            <button type="button" @click.stop="previewUrl = null; $refs.fileInput.value = ''" class="absolute top-2 right-2 p-2 rounded-full bg-slate-900/90 text-red-400 hover:text-red-300 border border-slate-800 shadow">
+                                <i data-feather="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Meta Details -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Hazard Category *</label>
+                            <select name="category" required class="w-full rounded-xl px-4 py-3 bg-slate-950 border border-slate-800 text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                {% for code, label in categories %}
+                                    <option value="{{ code }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Scan Title *</label>
+                            <input name="title" type="text" required class="w-full rounded-xl px-4 py-3 bg-slate-950 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="e.g. Garbage Dump on 5th Ave">
+                        </div>
+                    </div>
+
+                    <!-- Location selector warning -->
+                    <div class="p-4 bg-slate-950/80 border border-slate-900 rounded-xl space-y-4">
+                        <div class="text-xs text-slate-400 flex items-start gap-2">
+                            <i data-feather="map-pin" class="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0"></i>
+                            <span>Specify exact GPS coordinates below. If unknown, center map on region or use default location.</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <input name="latitude" type="number" step="any" required value="40.7128" class="rounded-lg px-3 py-2 bg-slate-900 border border-slate-800 text-xs text-slate-200" placeholder="Latitude">
+                            <input name="longitude" type="number" step="any" required value="-74.0060" class="rounded-lg px-3 py-2 bg-slate-900 border border-slate-800 text-xs text-slate-200" placeholder="Longitude">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Description & Context</label>
+                        <textarea name="description" rows="3" class="w-full rounded-xl px-4 py-3 bg-slate-950 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Describe the environmental hazard details here..."></textarea>
+                    </div>
+
+                    <button type="submit" :disabled="submitting" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold rounded-xl text-sm transition-colors shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
+                        <template x-if="!submitting">
+                            <span>Upload & Analyze Hazard</span>
+                        </template>
+                        <template x-if="submitting">
+                            <span class="flex items-center gap-2 text-slate-950 font-extrabold"><span class="w-3.5 h-3.5 rounded-full border-2 border-slate-950 border-t-transparent animate-spin inline-block"></span> Analyzing with NVIDIA NIM...</span>
+                        </template>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Recent Scans Sidebar -->
+        <div class="space-y-6">
+            <h3 class="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                <i data-feather="history" class="w-5 h-5 text-emerald-400"></i>
+                Your Recent Scans
+            </h3>
+            
+            <div class="space-y-4 max-h-[640px] overflow-y-auto pr-2">
+                {% for scan in my_scans %}
+                    <div class="glass-card p-4 rounded-xl border border-slate-900 flex gap-4 hover:border-slate-800 transition-colors">
+                        <img src="{{ scan.image.url }}" class="w-16 h-16 rounded-lg object-cover border border-slate-800 flex-shrink-0" alt="scan">
+                        <div class="space-y-1">
+                            <h4 class="text-sm font-bold text-white leading-tight"><a href="{% url 'scanner_detail' scan.id %}" class="hover:text-emerald-400 transition-colors">{{ scan.title }}</a></h4>
+                            <p class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold">{{ scan.get_category_display }}</p>
+                            
+                            <div class="flex items-center gap-2 mt-1.5">
+                                {% if scan.ai_analysis %}
+                                    <span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                        {{ scan.ai_analysis.confidence_score }}% Conf
+                                    </span>
+                                {% else %}
+                                    <span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-slate-900 text-slate-500 border border-slate-800">
+                                        Processing
+                                    </span>
+                                {% endif %}
+                                <span class="text-[10px] text-slate-500">{{ scan.created_at|timesince }} ago</span>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="glass p-6 text-center rounded-xl border border-slate-900">
+                        <p class="text-sm text-slate-500">You haven't scanned any hazards yet. Start uploading above!</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
