@@ -12,7 +12,7 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-fallback-key-make-sure-to-change')
 DEBUG = False
 
-ALLOWED_HOSTS = ['://onrender.com', '123.456.78.90', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 INSTALLED_APPS = [
