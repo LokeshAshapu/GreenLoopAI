@@ -26,3 +26,9 @@ EXPOSE 8000
 
 # Start server
 CMD gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Ensure your startup command matches this:
+CMD ["gunicorn", "GreenLoopAI.wsgi:application", "--bind", "0.0.0.0:10000"]
