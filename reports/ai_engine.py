@@ -28,6 +28,8 @@ def analyze_environmental_image(image_file, category: str) -> dict:
     try:
         base64_image = encode_image(image_file)
         api_key = settings.NVIDIA_API_KEY
+        if api_key:
+            api_key = api_key.strip().strip("'").strip('"')
         api_url = settings.NVIDIA_API_URL
         
         headers = {

@@ -268,6 +268,9 @@ def chatbot_api_view(request):
             api_url = getattr(settings, 'NVIDIA_API_URL', 'https://integrate.api.nvidia.com/v1/chat/completions')
             mock_mode = getattr(settings, 'NVIDIA_MOCK_MODE', False)
 
+            if api_key:
+                api_key = api_key.strip().strip("'").strip('"')
+
             if mock_mode or not api_key:
                 # Fallback mock replies
                 return JsonResponse({
@@ -280,7 +283,7 @@ def chatbot_api_view(request):
             }
 
             payload = {
-                "model": "meta/llama-3.1-70b-instruct",
+                "model": "meta/llama-3.1-8b-instruct",
                 "messages": [
                     {
                         "role": "system",
