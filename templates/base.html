@@ -1,9 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-slate-950 text-slate-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GreenLoop AI - Environmental Intelligence Platform</title>
+    <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -80,8 +82,8 @@
             <!-- Logo -->
             <a href="{% url 'landing' %}" class="flex items-center gap-2 group">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 p-0.5 shadow-lg shadow-emerald-500/10 group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
-                    <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                        <i data-feather="repeat" class="w-5 h-5 text-emerald-400"></i>
+                    <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center overflow-hidden">
+                        <img src="{% static 'logo.png' %}" class="w-7 h-7 object-contain" alt="GreenLoop Logo">
                     </div>
                 </div>
                 <span class="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">GreenLoop<span class="text-xs font-semibold uppercase px-1.5 py-0.5 rounded-full bg-slate-800/80 text-cyan-400 border border-slate-700 ml-1">AI</span></span>

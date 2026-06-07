@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="min-h-[85vh] flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 relative">
@@ -7,8 +8,8 @@
     <div class="max-w-xl w-full space-y-8 glass-card p-8 rounded-2xl border border-slate-800 shadow-2xl relative">
         <div class="text-center">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 p-0.5 mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/10">
-                <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                    <i data-feather="repeat" class="w-6 h-6 text-emerald-400"></i>
+                <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center overflow-hidden">
+                    <img src="{% static 'logo.png' %}" class="w-8 h-8 object-contain" alt="GreenLoop Logo">
                 </div>
             </div>
             <h2 class="mt-6 text-3xl font-extrabold text-white tracking-tight">Create your account</h2>
