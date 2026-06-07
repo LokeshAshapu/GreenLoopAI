@@ -10,6 +10,9 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 
 from users.models import User, Profile, Achievement
 from users.serializers import UserSerializer, RegisterSerializer, ProfileSerializer
@@ -187,3 +190,78 @@ def profile_view(request):
             return render(request, 'partials/messages.html')
             
     return render(request, 'profile.html', {'user': user, 'profile': profile})
+
+
+def forgot_password_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+        
+    reset_link = None
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        if email:
+            try:
+                user = User.objects.get(email=email)
+                uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+                token = default_token_generator.make_token(user)
+                path = f"/forgot-password/reset/{uidb64}/{token}/"
+                reset_link = request.build_absolute_uri(path)
+                messages.success(request, "Password reset link generated successfully.")
+            except User.DoesNotExist:
+                messages.error(request, "No account exists with this email address.")
+            except Exception as e:
+                messages.error(request, f"Error: {e}")
+                
+    return render(request, 'forgot_password.html', {'reset_link': reset_link})
+
+
+def reset_password_confirm_view(request, uidb64, token):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+        
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+        
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+            
+            if not password or not confirm_password:
+                messages.error(request, "Please enter all fields.")
+                return render(request, 'reset_password_confirm.html')
+                
+            if password != confirm_password:
+                messages.error(request, "Passwords do not match.")
+                return render(request, 'reset_password_confirm.html')
+                
+            try:
+                validate_password(password, user=user)
+            except ValidationError as e:
+                messages.error(request, ", ".join(e.messages))
+                return render(request, 'reset_password_confirm.html')
+                
+            try:
+                user.set_password(password)
+                user.save()
+                messages.success(request, "Your password has been reset successfully. Please sign in.")
+                
+                if request.headers.get('HX-Request'):
+                    response = HttpResponse()
+                    response['HX-Redirect'] = '/login/'
+                    return response
+                return redirect('login')
+            except Exception as e:
+                messages.error(request, f"Error: {e}")
+                
+        return render(request, 'reset_password_confirm.html')
+    else:
+        messages.error(request, "The password reset link is invalid or has expired.")
+        if request.headers.get('HX-Request'):
+            response = HttpResponse()
+            response['HX-Redirect'] = '/forgot-password/'
+            return response
+        return redirect('forgot_password')
