@@ -9,7 +9,13 @@
         <div class="space-y-6">
             <!-- Profile Card -->
             <div class="glass-card p-6 rounded-2xl border border-slate-900 text-center space-y-4">
-                <img src="{{ profile.avatar_url }}" class="w-24 h-24 rounded-full border border-slate-800 object-cover mx-auto shadow-xl" alt="avatar">
+                {% if profile.avatar_url %}
+                    <img src="{{ profile.avatar_url }}" class="w-24 h-24 rounded-full border border-slate-800 object-cover mx-auto shadow-xl" alt="avatar">
+                {% else %}
+                    <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center text-slate-950 font-black text-3xl shadow-xl mx-auto border border-slate-800">
+                        {{ user.username|slice:":1"|upper }}
+                    </div>
+                {% endif %}
                 <div>
                     <h2 class="text-xl font-extrabold text-white">{{ user.username }}</h2>
                     <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 capitalize">{{ user.get_role_display }}</span>

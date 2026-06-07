@@ -112,7 +112,13 @@
                         
                         <!-- Profile button -->
                         <a href="{% url 'profile' %}" class="flex items-center gap-2 p-1.5 pr-3 rounded-full bg-slate-900 border border-slate-800 hover:bg-slate-800 transition-colors group">
-                            <img class="w-8 h-8 rounded-full object-cover border border-slate-700" src="{{ user.profile.avatar_url }}" alt="avatar">
+                            {% if user.profile.avatar_url %}
+                                <img class="w-8 h-8 rounded-full object-cover border border-slate-700" src="{{ user.profile.avatar_url }}" alt="avatar">
+                            {% else %}
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center text-slate-950 font-bold text-xs border border-slate-700">
+                                    {{ user.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
                             <span class="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">{{ user.username }}</span>
                         </a>
                         

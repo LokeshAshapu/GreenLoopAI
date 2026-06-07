@@ -108,7 +108,13 @@
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {% for volunteer in mission.volunteers.all %}
                 <div class="glass p-3.5 rounded-xl border border-slate-900 flex items-center gap-2.5">
-                    <img src="{{ volunteer.profile.avatar_url }}" class="w-8 h-8 rounded-full border border-slate-800 object-cover" alt="avatar">
+                    {% if volunteer.profile.avatar_url %}
+                        <img src="{{ volunteer.profile.avatar_url }}" class="w-8 h-8 rounded-full border border-slate-800 object-cover" alt="avatar">
+                    {% else %}
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center text-slate-950 font-bold text-xs border border-slate-800">
+                            {{ volunteer.username|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
                     <div class="space-y-0.5">
                         <span class="block text-xs font-bold text-slate-200">{{ volunteer.username }}</span>
                         <span class="block text-[9px] text-emerald-400 capitalize font-medium">{{ volunteer.get_role_display }}</span>

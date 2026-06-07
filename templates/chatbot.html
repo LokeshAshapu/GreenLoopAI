@@ -80,8 +80,12 @@
                         </div>
                         
                         <!-- Avatar for user -->
-                        <div x-show="msg.sender === 'user'" class="w-8 h-8 rounded-full border border-slate-800 overflow-hidden flex-shrink-0">
-                            <img src="{{ user.profile.avatar_url }}" class="w-full h-full object-cover" alt="avatar">
+                        <div x-show="msg.sender === 'user'" class="w-8 h-8 rounded-full border border-slate-800 overflow-hidden flex-shrink-0 flex items-center justify-center bg-gradient-to-tr from-emerald-500 to-cyan-500 text-slate-950 font-bold text-sm">
+                            {% if user.profile.avatar_url %}
+                                <img src="{{ user.profile.avatar_url }}" class="w-full h-full object-cover" alt="avatar">
+                            {% else %}
+                                {{ user.username|slice:":1"|upper }}
+                            {% endif %}
                         </div>
 
                     </div>

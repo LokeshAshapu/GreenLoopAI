@@ -79,7 +79,7 @@ def seed():
         profile.phone = "+1 (555) 123-0192"
         profile.address = "789 Greenloop Blvd"
         profile.bio = f"Active {user.get_role_display()} coordinating environmental cleanups."
-        profile.avatar_url = "/media/avatars/lokesh.png" # Set beautiful generated headshot for everyone
+        profile.avatar_url = ""
         profile.save()
         
         user.check_and_award_achievements()

@@ -41,7 +41,7 @@ class User(AbstractUser):
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     bio = models.TextField(blank=True, max_length=500)
-    avatar_url = models.URLField(blank=True, default="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150")
+    avatar_url = models.URLField(blank=True, default="")
     
     # Encrypted fields to comply with cybersecurity requirements
     _phone_encrypted = models.CharField(max_length=255, db_column='phone_encrypted', blank=True)
